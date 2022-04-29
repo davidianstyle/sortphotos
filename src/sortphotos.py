@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 import re
 import locale
 
+
 # Setting locale to the 'local' value
 locale.setlocale(locale.LC_ALL, '')
 
@@ -84,7 +85,7 @@ def parse_date_exif(date_string, disable_time_zone_adjust):
                 time_zone_min = int(time_zone[1])
 
                 # check if + or -
-                if time_entries[1] == '-':
+                if time_entries[1] == '+':
                     time_zone_hour *= -1
 
                 dateadd = timedelta(hours=time_zone_hour, minutes=time_zone_min)
@@ -283,7 +284,7 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
         copy_files=False, test=False, ignore_file_types=[], remove_duplicates=True, disable_time_zone_adjust=False,
         day_begins=0, additional_groups_to_ignore=['File'], additional_tags_to_ignore=[],
         use_only_groups=None, use_only_tags=None, prioritize_groups=None, prioritize_tags=None,
-        verbose=True):
+        verbose=True, keep_filename=False):
     """
     This function is a convenience wrapper around ExifTool based on common usage scenarios for sortphotos.py
 
@@ -312,6 +313,8 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
         True to remove files that are exactly the same in name and a file hash
     disable_time_zone_adjust : bool
 		True to disable time zone adjustments
+    keep_filename : bool
+        True to append original filename in case of duplicates instead of increasing number
     day_begins : int
         what hour of the day you want the day to begin (only for classification purposes).  Defaults at 0 as midnight.
         Can be used to group early morning photos with the previous day.  must be a number between 0-23
@@ -443,18 +446,18 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
         dest_file = dest_dir
         for thedir in dirs:
             dest_file = os.path.join(dest_file, thedir)
-            if not os.path.exists(dest_file) and not test:
+            if not test and not os.path.exists(dest_file):
                 os.makedirs(dest_file)
 
         # rename file if necessary
         filename = os.path.basename(src_file)
 
-        if rename_format is not None:
+        if rename_format is not None and date is not None:
             _, ext = os.path.splitext(filename)
             filename = date.strftime(rename_format) + ext.lower()
 
         # setup destination file
-        dest_file = os.path.join(dest_file, filename.encode('utf-8'))
+        dest_file = os.path.join(dest_file, filename)
         root, ext = os.path.splitext(dest_file)
 
         if verbose:
@@ -484,7 +487,11 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
                     break
 
                 else:  # name is same, but file is different
-                    dest_file = root + '_' + str(append) + ext
+                    if keep_filename:
+                        orig_filename = os.path.splitext(os.path.basename(src_file))[0]
+                        dest_file = root + '_' + orig_filename + '_' + str(append) + ext
+                    else:
+                        dest_file = root + '_' + str(append) + ext
                     append += 1
                     if verbose:
                         print('Same name already exists...renaming to: ' + dest_file)
@@ -554,6 +561,9 @@ def main():
                         default=None,
                         help="ignore file types\n\
     default is to only ignore hidden files (.*)")
+    parser.add_argument('--keep-filename', action='store_true',
+                        help='In case of duplicated output filenames an increasing number and the original file name will be appended',
+                        default=False)
     parser.add_argument('--keep-duplicates', action='store_true',
                         help='If file is a duplicate keep it anyway (after renaming).')
     parser.add_argument('--day-begins', type=int, default=0, help='hour of day that new day begins (0-23), \n\
@@ -592,7 +602,7 @@ def main():
         args.copy, args.test, args.ignore_file_types, not args.keep_duplicates, args.disable_time_zone_adjust, args.day_begins,
         args.ignore_groups, args.ignore_tags, args.use_only_groups,
         args.use_only_tags, args.prioritize_groups, args.prioritize_tags,
-        not args.silent)
+        not args.silent, args.keep_filename)
 
 if __name__ == '__main__':
     main()
