@@ -14,6 +14,24 @@ SortPhotos is a Python script that organizes photos into folders by date and/or 
 
 # Usage
 
+David's most common usages
+
+## Windows 10
+
+### Test
+    python "D:\Users\David Chang\Code\sortphotos\src\sortphotos.py" "D:\Users\David Chang\Dropbox\Camera Uploads\WIP" "H:\Staging" -c -r -t --rename "%Y-%m-%d %H.%M.%S" --sort "%Y/%Y-%m-%d [%b %d %Y]" --disable-time-zone-adjust --ignore-file-types THM *> "H:\Staging\20220101_output_test.txt"
+
+### Run
+    python "D:\Users\David Chang\Code\sortphotos\src\sortphotos.py" "D:\Users\David Chang\Dropbox\Camera Uploads\WIP" "H:\Staging" -c -r --rename "%Y-%m-%d %H.%M.%S" --sort "%Y/%Y-%m-%d [%b %d %Y]" --disable-time-zone-adjust --ignore-file-types THM *>> "H:\Staging\20220101_output.txt"
+
+## Mac OSX
+
+### Test
+    python ~/Code/GitHub/sortphotos/src/sortphotos.py ~/Dropbox/Camera\ Uploads/WIP /Volumes/David\ Chang\ Media/Staging/ -c -r -t --rename "%Y-%m-%d %H.%M.%S" --sort "%Y/%Y-%m-%d [%b %d %Y]" --disable-time-zone-adjust --ignore-file-types THM *>> /Volumes/David\ Chang\ Media/Staging/20220101_output_test.txt --ignore-tags "File:FileInodeChangeDate"
+
+### Run
+    python ~/Code/GitHub/sortphotos/src/sortphotos.py ~/Dropbox/Camera\ Uploads/WIP /Volumes/David\ Chang\ Media/Staging/ -c -r --rename "%Y-%m-%d %H.%M.%S" --sort "%Y/%Y-%m-%d [%b %d %Y]" --disable-time-zone-adjust --ignore-file-types THM *>> /Volumes/David\ Chang\ Media/Staging/20220101_output_test.txt --ignore-tags "File:FileInodeChangeDate"
+
 SortPhotos is intended to be used primarily from the command line.  To see all the options, invoke help
 
     python sortphotos.py -h
