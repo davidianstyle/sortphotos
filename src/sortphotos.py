@@ -22,6 +22,24 @@ import filecmp
 from datetime import datetime, timedelta
 import re
 import locale
+import errno
+
+
+# shutil.copy2() calls shutil.copystat(), which on macOS calls os.chflags()
+# to mirror file flags. exFAT volumes (a common format for external drives
+# like the Seagate One Touch) don't support flags and return EINVAL,
+# blowing up the whole copy. Patch chflags to swallow EINVAL so copies to
+# exFAT destinations succeed (with flags silently dropped, which is the
+# only thing exFAT can do anyway).
+_orig_chflags = getattr(os, 'chflags', None)
+if _orig_chflags is not None:
+    def _chflags_tolerant(path, flags, *args, **kwargs):
+        try:
+            return _orig_chflags(path, flags, *args, **kwargs)
+        except OSError as e:
+            if e.errno != errno.EINVAL:
+                raise
+    os.chflags = _chflags_tolerant
 
 
 # Setting locale to the 'local' value
